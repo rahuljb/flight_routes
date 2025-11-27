@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Airport Route Tools</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+        h1 { margin-bottom: 25px; }
+        h2 { margin-top: 0; }
+        label {
+            display: inline-block;
+            width: 150px;
+            font-weight: bold;
+        }
+        input, select {
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 8px 14px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .result-box {
+            background: #f3f3f3;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Airport Route Tools</h1>
+
+<!-- 1️⃣ QUESTION 1: LAST LEFT / RIGHT NODE FROM SELECTED AIRPORT -->
+<div class="section">
+    <h2>1. Find Last Left or Right Node from an Airport</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="left_right">
+
+        <label>Select Airport:</label>
+        <select name="start_node" required>
+            {% for n in all_nodes %}
+                <option value="{{ n.id }}"
+                    {% if selected_start_node_id and n.id|stringformat:"s" == selected_start_node_id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ n.airport_code }}
+                </option>
+            {% empty %}
+                <option disabled>No airports available</option>
+            {% endfor %}
+        </select>
+        <br>
+
+        <label>Direction:</label>
+        <select name="direction">
+            <option value="left" {% if selected_direction == 'left' %}selected{% endif %}>
+                Left (go down left branch)
+            </option>
+            <option value="right" {% if selected_direction == 'right' %}selected{% endif %}>
+                Right (go down right branch)
+            </option>
+        </select>
+        <br>
+
+        <button type="submit">Search</button>
+    </form>
+
+    {% if left_right_result %}
+        <div class="result-box">
+            <h3>Result:</h3>
+            <p><strong>Airport:</strong> {{ left_right_result.airport_code }}</p>
+            <p><strong>Distance from parent:</strong> {{ left_right_result.duration }} km</p>
+            <p><strong>Route:</strong> {{ left_right_result.route.name }}</p>
+        </div>
+    {% endif %}
+</div>
+
+
+<!-- 2️⃣ QUESTION 2: LONGEST NODE (TOTAL DISTANCE) FROM AIRPORT -->
+<div class="section">
+    <h2>2. Longest Node Based on Duration from an Airport</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="longest">
+
+        <label>Select Airport:</label>
+        <select name="longest_start_node" required>
+            {% for n in all_nodes %}
+                <option value="{{ n.id }}"
+                    {% if selected_longest_start_id and n.id|stringformat:"s" == selected_longest_start_id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ n.airport_code }}
+                </option>
+            {% empty %}
+                <option disabled>No airports available</option>
+            {% endfor %}
+        </select>
+        <br>
+
+        <button type="submit">Find Longest</button>
+    </form>
+
+    {% if longest_node %}
+    <div class="result-box">
+        <h3>Longest Path from Selected Airport</h3>
+        <p><strong>Deepest Airport:</strong> {{ longest_node.airport_code }}</p>
+        <p><strong>Total Distance:</strong> {{ longest_total }} km</p>
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- 3️⃣ QUESTION 3: SHORTEST PATH BETWEEN TWO AIRPORTS -->
+<div class="section">
+    <h2>3. Shortest Node Based on Duration Between Two Airports</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="shortest">
+
+        <label>Select Route:</label>
+        <select name="shortest_route" required>
+            {% for r in routes %}
+                <option value="{{ r.id }}"
+                    {% if selected_shortest_route_id and r.id|stringformat:"s" == selected_shortest_route_id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ r.name }}
+                </option>
+            {% empty %}
+                <option disabled>No routes available</option>
+            {% endfor %}
+        </select>
+        <br>
+
+        <label>Airport A:</label>
+        <input type="text" name="airport_a" placeholder="Example: DELHI" required>
+        <br>
+
+        <label>Airport B:</label>
+        <input type="text" name="airport_b" placeholder="Example: RUSSIA" required>
+        <br>
+
+        <button type="submit">Find Shortest Path</button>
+    </form>
+
+    {% if shortest_nodes %}
+        <div class="result-box">
+            <h3>Shortest Path</h3>
+            <p>
+                <strong>Path:</strong>
+                {% for n in shortest_nodes %}
+                    {{ n.airport_code }}{% if not forloop.last %} → {% endif %}
+                {% endfor %}
+            </p>
+            <p><strong>Total Distance:</strong> {{ shortest_total }} km</p>
+        </div>
+    {% elif shortest_error %}
+        <div class="result-box" style="background:#ffe6e6; border:1px solid red;">
+            <strong>Error:</strong> {{ shortest_error }}
+        </div>
+    {% endif %}
+</div>
+
+</body>
+</html>
