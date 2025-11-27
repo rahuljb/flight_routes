@@ -8,7 +8,7 @@ from .models import Route, RouteNode
 
 def deepest_child(node, side: str):
     """
-    Q1: from this node, walk repeatedly to left/right child until no more.
+    from this node, walk repeatedly to left/right child until no more.
     """
     current = node
     while True:
@@ -20,7 +20,7 @@ def deepest_child(node, side: str):
 
 def longest_path_from(node):
     """
-    Q2: from a starting node, find the deepest descendant (by TOTAL distance).
+    from a starting node, find the deepest descendant (by TOTAL distance).
     Returns (max_distance_from_node, deepest_node).
     """
     best_distance = 0
@@ -39,7 +39,7 @@ def longest_path_from(node):
 
 def build_graph_for_route(route):
     """
-    Q3 helper: build an undirected graph for this route.
+    build an undirected graph for this route.
     parent <-> child edge weight = child.duration (distance from parent)
     """
     graph = {}
@@ -57,7 +57,7 @@ def build_graph_for_route(route):
 
 def shortest_path_between(route, start_node, end_node):
     """
-    Q3: Dijkstra shortest path between two airports in one route.
+    shortest path between two airports in one route.
     Returns (total_distance, [RouteNode, ...]) or (None, []) if no path.
     """
     if start_node.id == end_node.id:
@@ -106,26 +106,25 @@ def shortest_path_between(route, start_node, end_node):
 
 def route_tools(request):
     routes = Route.objects.all()
-    all_nodes = RouteNode.objects.all()   # for airport dropdowns (Q1 + Q2)
+    all_nodes = RouteNode.objects.all()  
 
-    # results
-    left_right_result = None          # Q1
-    longest_node = None               # Q2
-    longest_total = None              # Q2
-    shortest_nodes = None             # Q3 (list of nodes)
-    shortest_total = None             # Q3
-    shortest_error = None             # Q3 error message
+    left_right_result = None       
+    longest_node = None               
+    longest_total = None            
+    shortest_nodes = None             
+    shortest_total = None            
+    shortest_error = None           
 
     # keep selected values for dropdowns
-    selected_start_node_id = None     # Q1 airport
-    selected_direction = None         # Q1 direction
-    selected_longest_start_id = None  # Q2 airport
-    selected_shortest_route_id = None # Q3 route
+    selected_start_node_id = None   
+    selected_direction = None        
+    selected_longest_start_id = None 
+    selected_shortest_route_id = None
 
     if request.method == "POST":
         action = request.POST.get("action")
 
-        # 1️⃣ Q1: last left/right node from selected airport
+        # last left/right node from selected airport
         if action == "left_right":
             selected_start_node_id = request.POST.get("start_node")
             selected_direction = request.POST.get("direction")
@@ -134,14 +133,14 @@ def route_tools(request):
                 start_node = get_object_or_404(RouteNode, id=selected_start_node_id)
                 left_right_result = deepest_child(start_node, selected_direction)
 
-        # 2️⃣ Q2: longest node (total distance) from selected airport
+        # longest node (total distance) from selected airport
         elif action == "longest":
             selected_longest_start_id = request.POST.get("longest_start_node")
             if selected_longest_start_id:
                 start_node = get_object_or_404(RouteNode, id=selected_longest_start_id)
                 longest_total, longest_node = longest_path_from(start_node)
 
-        # 3️⃣ Q3: shortest path between two airports (within a route)
+        # shortest path between two airports (within a route)
         elif action == "shortest":
             selected_shortest_route_id = request.POST.get("shortest_route")
             airport_a = request.POST.get("airport_a", "").strip().upper()
@@ -174,17 +173,14 @@ def route_tools(request):
         "routes": routes,
         "all_nodes": all_nodes,
 
-        # Q1
         "left_right_result": left_right_result,
         "selected_start_node_id": selected_start_node_id,
         "selected_direction": selected_direction,
 
-        # Q2
         "longest_node": longest_node,
         "longest_total": longest_total,
         "selected_longest_start_id": selected_longest_start_id,
 
-        # Q3
         "shortest_nodes": shortest_nodes,
         "shortest_total": shortest_total,
         "shortest_error": shortest_error,
